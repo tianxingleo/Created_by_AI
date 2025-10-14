@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>日语记忆卡片 - 星期与时间</title>
+  <style>
+    body {
+      font-family: "Noto Sans JP", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(135deg, #f7f9fb, #dce3f0);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .mode-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      background-color: #4a90e2;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #357ac8;
+    }
+
+    .card {
+      width: 280px;
+      height: 180px;
+      perspective: 1000px;
+      cursor: pointer;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+
+    .card.flip .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front,
+    .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 15px;
+      background: white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 10px;
+    }
+
+    .card-front {
+      font-size: 28px;
+      color: #333;
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+      background: #fff5e4;
+    }
+
+    .detail {
+      font-size: 18px;
+      margin: 5px 0;
+    }
+
+    .next-btn {
+      margin-top: 20px;
+      background-color: #ffa45c;
+    }
+
+    .next-btn:hover {
+      background-color: #e27a32;
+    }
+  </style>
+</head>
+<body>
+  <h1>日语记忆卡片练习</h1>
+  <div class="mode-buttons">
+    <button id="weekBtn">星期练习</button>
+    <button id="timeBtn">时间练习</button>
+  </div>
+
+  <div class="card" id="flashcard">
+    <div class="card-inner">
+      <div class="card-front" id="frontText">点击按钮开始</div>
+      <div class="card-back" id="backText"></div>
+    </div>
+  </div>
+
+  <button class="next-btn" id="nextBtn" style="display:none;">下一张</button>
+
+  <script>
+    const weeks = [
+      { jp: "月曜日", cn: "星期一", kana: "げつようび", roma: "getsuyoubi" },
+      { jp: "火曜日", cn: "星期二", kana: "かようび", roma: "kayoubi" },
+      { jp: "水曜日", cn: "星期三", kana: "すいようび", roma: "suiyoubi" },
+      { jp: "木曜日", cn: "星期四", kana: "もくようび", roma: "mokuyoubi" },
+      { jp: "金曜日", cn: "星期五", kana: "きんようび", roma: "kinyoubi" },
+      { jp: "土曜日", cn: "星期六", kana: "どようび", roma: "doyoubi" },
+      { jp: "日曜日", cn: "星期日", kana: "にちようび", roma: "nichiyoubi" },
+    ];
+
+    const times = [
+      { jp: "一時", cn: "一点", kana: "いちじ", roma: "ichiji" },
+      { jp: "二時", cn: "两点", kana: "にじ", roma: "niji" },
+      { jp: "三時", cn: "三点", kana: "さんじ", roma: "sanji" },
+      { jp: "四時", cn: "四点", kana: "よじ", roma: "yoji" },
+      { jp: "五時", cn: "五点", kana: "ごじ", roma: "goji" },
+      { jp: "六時", cn: "六点", kana: "ろくじ", roma: "rokuji" },
+      { jp: "七時", cn: "七点", kana: "しちじ", roma: "shichiji" },
+      { jp: "八時", cn: "八点", kana: "はちじ", roma: "hachiji" },
+      { jp: "九時", cn: "九点", kana: "くじ", roma: "kuji" },
+      { jp: "十時", cn: "十点", kana: "じゅうじ", roma: "juuji" },
+      { jp: "十一時", cn: "十一点", kana: "じゅういちじ", roma: "juuichiji" },
+      { jp: "十二時", cn: "十二点", kana: "じゅうにじ", roma: "juuniji" },
+    ];
+
+    let currentMode = null;
+    const card = document.getElementById("flashcard");
+    const front = document.getElementById("frontText");
+    const back = document.getElementById("backText");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function randomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function showCard() {
+      card.classList.remove("flip");
+      let data = currentMode === "week" ? randomItem(weeks) : randomItem(times);
+      const showType = Math.floor(Math.random() * 3); // 随机显示汉字、假名或中文
+
+      if (showType === 0) front.textContent = data.jp;
+      else if (showType === 1) front.textContent = data.kana;
+      else front.textContent = data.cn;
+
+      back.innerHTML = `
+        <div class="detail"><strong>${data.jp}</strong></div>
+        <div class="detail">假名：${data.kana}</div>
+        <div class="detail">罗马音：${data.roma}</div>
+        <div class="detail">中文：${data.cn}</div>
+      `;
+      nextBtn.style.display = "block";
+    }
+
+    document.getElementById("weekBtn").onclick = () => {
+      currentMode = "week";
+      showCard();
+    };
+
+    document.getElementById("timeBtn").onclick = () => {
+      currentMode = "time";
+      showCard();
+    };
+
+    card.onclick = () => {
+      if (currentMode) {
+        card.classList.toggle("flip");
+      }
+    };
+
+    nextBtn.onclick = showCard;
+  </script>
+</body>
+</html>
